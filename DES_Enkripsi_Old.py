@@ -1,109 +1,43 @@
-# Fungsi untuk konversi heksadesimal ke biner
-def hex2bin(s):
-    mp = {
-        "0": "0000",
-        "1": "0001",
-        "2": "0010",
-        "3": "0011",
-        "4": "0100",
-        "5": "0101",
-        "6": "0110",
-        "7": "0111",
-        "8": "1000",
-        "9": "1001",
-        "A": "1010",
-        "B": "1011",
-        "C": "1100",
-        "D": "1101",
-        "E": "1110",
-        "F": "1111",
-    }
-    bin = ""
-    for i in range(len(s)):
-        bin = bin + mp[s[i]]
-    return bin
+# Tabel Hexa to Biner
+tabel_hex2bin = {
+    "0": "0000",
+    "1": "0001",
+    "2": "0010",
+    "3": "0011",
+    "4": "0100",
+    "5": "0101",
+    "6": "0110",
+    "7": "0111",
+    "8": "1000",
+    "9": "1001",
+    "A": "1010",
+    "B": "1011",
+    "C": "1100",
+    "D": "1101",
+    "E": "1110",
+    "F": "1111",
+}
 
 
-# Fungsi untuk konversi biner ke heksadesimal
-def bin2hex(s):
-    mp = {
-        "0000": "0",
-        "0001": "1",
-        "0010": "2",
-        "0011": "3",
-        "0100": "4",
-        "0101": "5",
-        "0110": "6",
-        "0111": "7",
-        "1000": "8",
-        "1001": "9",
-        "1010": "A",
-        "1011": "B",
-        "1100": "C",
-        "1101": "D",
-        "1110": "E",
-        "1111": "F",
-    }
-    hex = ""
-    for i in range(0, len(s), 4):
-        ch = s[i] + s[i + 1] + s[i + 2] + s[i + 3]
-        hex = hex + mp[ch]
-    return hex
-
-
-# Fungsi untuk konversi biner ke desimal
-def bin2dec(binary):
-    decimal, i = 0, 0
-    while binary != 0:
-        dec = binary % 10
-        decimal = decimal + dec * pow(2, i)
-        binary = binary // 10
-        i += 1
-    return decimal
-
-
-# Fungsi untuk konversi desimal ke biner
-def dec2bin(num):
-    res = bin(num).replace("0b", "")
-    if len(res) % 4 != 0:
-        div = len(res) / 4
-        div = int(div)
-        counter = (4 * (div + 1)) - len(res)
-        for i in range(0, counter):
-            res = "0" + res
-    return res
-
-
-# Fungsi untuk permutasi
-def permute(k, arr, n):
-    permutation = ""
-    for i in range(0, n):
-        permutation = permutation + k[arr[i] - 1]
-    return permutation
-
-
-# Fungsi untuk pergeseran bit ke kiri
-def shift_left(k, nth_shifts):
-    s = ""
-    for i in range(nth_shifts):
-        for j in range(1, len(k)):
-            s = s + k[j]
-        s = s + k[0]
-        k = s
-        s = ""
-    return k
-
-
-# Fungsi untuk operasi XOR
-def xor(a, b):
-    ans = ""
-    for i in range(len(a)):
-        if a[i] == b[i]:
-            ans = ans + "0"
-        else:
-            ans = ans + "1"
-    return ans
-
+# Tabel Biner to Hexa
+tabel_bin2hex = {
+    "0000": "0",
+    "0001": "1",
+    "0010": "2",
+    "0011": "3",
+    "0100": "4",
+    "0101": "5",
+    "0110": "6",
+    "0111": "7",
+    "1000": "8",
+    "1001": "9",
+    "1010": "A",
+    "1011": "B",
+    "1100": "C",
+    "1101": "D",
+    "1110": "E",
+    "1111": "F",
+}
 
 # Tabel Initial Permutation
 tabel_ip = [
@@ -173,7 +107,6 @@ tabel_ip = [
     7,
 ]
 
-
 # Tabel Expansion
 tabel_expansion = [
     32,
@@ -225,7 +158,6 @@ tabel_expansion = [
     32,
     1,
 ]
-
 
 # Tabel P-Box
 tabel_pbox = [
@@ -323,7 +255,6 @@ tabel_sbox = [
     ],
 ]
 
-
 # Tabel Invers Initial Permutation
 tabel_iip = [
     40,
@@ -392,81 +323,6 @@ tabel_iip = [
     25,
 ]
 
-
-# Fungsi enkripsi DES
-def encrypt(pt, rkb):
-    pt = hex2bin(pt)
-    pt = permute(pt, tabel_ip, 64)
-    left = pt[0:32]
-    right = pt[32:64]
-    for i in range(0, 16):
-        right_expanded = permute(right, tabel_expansion, 48)
-        xor_x = xor(right_expanded, rkb[i])
-        sbox_str = ""
-        for j in range(0, 8):
-            row = bin2dec(int(xor_x[j * 6] + xor_x[j * 6 + 5]))
-            col = bin2dec(
-                int(
-                    xor_x[j * 6 + 1]
-                    + xor_x[j * 6 + 2]
-                    + xor_x[j * 6 + 3]
-                    + xor_x[j * 6 + 4]
-                )
-            )
-            val = tabel_sbox[j][row][col]
-            sbox_str = sbox_str + dec2bin(val)
-        sbox_str = permute(sbox_str, tabel_pbox, 32)
-        result = xor(left, sbox_str)
-        left = result
-        if i != 15:
-            left, right = right, left
-    combine = left + right
-    cipher_text = permute(combine, tabel_iip, 64)
-    return cipher_text
-
-
-# Fungsi untuk mengonversi string ASCII ke heksadesimal
-def ascii2hex(s):
-    return "".join(f"{ord(c):02X}" for c in s)
-
-
-# Fungsi untuk mengonversi heksadesimal ke ASCII
-def hex2ascii(s):
-    return "".join(chr(int(s[i : i + 2], 16)) for i in range(0, len(s), 2))
-
-
-# Validasi input
-def validate_input(s):
-    if len(s) != 8:
-        return False
-    if not all(ord(c) < 128 for c in s):
-        return False
-    return True
-
-
-# Input dari pengguna
-pt = input("Masukkan plaintext (8 karakter ASCII): ")
-key = input("Masukkan kunci (16 karakter Hex): ")
-
-# # Pastikan input valid
-# if not validate_input(pt) or not validate_input(key):
-#     print("Error: Plaintext dan kunci harus 8 karakter ASCII!")
-#     exit()
-# Pastikan input valid
-if not validate_input(pt):
-    print("Error: Plaintext harus 8 karakter ASCII!")
-    exit()
-
-# Konversi ASCII ke heksadesimal
-pt_hex = ascii2hex(pt)
-# key_hex = ascii2hex(key)
-key_hex = key
-
-# --- PROSES PEMBANGKITAN KUNCI ---
-# Proses pembuatan kunci
-key = hex2bin(key_hex)
-
-
 # Tabel Pemutation Compression 1
 tabel_pc1 = [
     57,
@@ -526,11 +382,6 @@ tabel_pc1 = [
     12,
     4,
 ]
-key = permute(key, tabel_pc1, 56)
-
-# Tabel Left Shift Operations
-tabel_lso = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
-
 
 # Tabel Pemutation Compression 2
 tabel_pc2 = [
@@ -583,6 +434,185 @@ tabel_pc2 = [
     29,
     32,
 ]
+
+# Tabel Left Shift Operations
+tabel_lso = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
+
+
+# Fungsi untuk konversi heksadesimal ke biner
+def hex2bin(s):
+    bin = ""
+    for i in range(len(s)):
+        bin = bin + tabel_hex2bin[s[i]]
+    return bin
+
+
+# Fungsi untuk konversi biner ke heksadesimal
+def bin2hex(s):
+    hex = ""
+    for i in range(0, len(s), 4):
+        ch = s[i] + s[i + 1] + s[i + 2] + s[i + 3]
+        hex = hex + tabel_bin2hex[ch]
+    return hex
+
+
+# Fungsi untuk konversi biner ke desimal
+def bin2dec(binary):
+    decimal, i = 0, 0
+    while binary != 0:
+        dec = binary % 10
+        decimal = decimal + dec * pow(2, i)
+        binary = binary // 10
+        i += 1
+    return decimal
+
+
+# Fungsi untuk konversi desimal ke biner
+def dec2bin(num):
+    res = bin(num).replace("0b", "")
+    if len(res) % 4 != 0:
+        div = len(res) / 4
+        div = int(div)
+        counter = (4 * (div + 1)) - len(res)
+        for i in range(0, counter):
+            res = "0" + res
+    return res
+
+
+# Fungsi untuk konversi ASCII ke heksadesimal
+def ascii2hex(s):
+    hex_str = ""
+    for c in s:
+        ascii_val = ord(c)
+        hex_val = ""
+        while ascii_val > 0:
+            remainder = ascii_val % 16
+            if remainder < 10:
+                hex_val = str(remainder) + hex_val
+            else:
+                hex_val = chr(remainder - 10 + ord("A")) + hex_val
+            ascii_val = ascii_val // 16
+        hex_str += hex_val.zfill(2)
+    return hex_str
+
+
+# Fungsi untuk konversi heksadesimal ke ASCII
+def hex2ascii(s):
+    ascii_str = ""
+    for i in range(0, len(s), 2):
+        hex_pair = s[i : i + 2]
+        decimal_val = 0
+        for j, digit in enumerate(reversed(hex_pair)):
+            if "0" <= digit <= "9":
+                decimal_val += (ord(digit) - ord("0")) * (16**j)
+            else:
+                decimal_val += (ord(digit) - ord("A") + 10) * (16**j)
+        ascii_str += chr(decimal_val)
+    return ascii_str
+
+
+# Fungsi untuk permutasi
+def permute(k, arr, n):
+    permutation = ""
+    for i in range(0, n):
+        permutation = permutation + k[arr[i] - 1]
+    return permutation
+
+
+# Fungsi untuk pergeseran bit ke kiri
+def shift_left(k, nth_shifts):
+    s = ""
+    for i in range(nth_shifts):
+        for j in range(1, len(k)):
+            s = s + k[j]
+        s = s + k[0]
+        k = s
+        s = ""
+    return k
+
+
+# Fungsi untuk operasi XOR
+def xor(a, b):
+    ans = ""
+    for i in range(len(a)):
+        if a[i] == b[i]:
+            ans = ans + "0"
+        else:
+            ans = ans + "1"
+    return ans
+
+
+# Fungsi enkripsi DES
+def encrypt(pt, rkb):
+    pt = hex2bin(pt)
+    pt = permute(pt, tabel_ip, 64)
+    left = pt[0:32]
+    print("L0: ", left)
+    right = pt[32:64]
+    print("R0: ", right)
+    for i in range(0, 16):
+        right_expanded = permute(right, tabel_expansion, 48)
+        xor_x = xor(right_expanded, rkb[i])
+        sbox_str = ""
+        for j in range(0, 8):
+            row = bin2dec(int(xor_x[j * 6] + xor_x[j * 6 + 5]))
+            col = bin2dec(
+                int(
+                    xor_x[j * 6 + 1]
+                    + xor_x[j * 6 + 2]
+                    + xor_x[j * 6 + 3]
+                    + xor_x[j * 6 + 4]
+                )
+            )
+            val = tabel_sbox[j][row][col]
+            sbox_str = sbox_str + dec2bin(val)
+        sbox_str = permute(sbox_str, tabel_pbox, 32)
+        result = xor(left, sbox_str)
+        left = result
+        if i != 15:
+            left, right = right, left
+    combine = left + right
+    cipher_text = permute(combine, tabel_iip, 64)
+    return cipher_text
+
+
+# Fungsi untuk validasi input pesan
+def validate_input(s):
+    if len(s) != 8:
+        return False
+    if not all(ord(c) < 128 for c in s):
+        return False
+    return True
+
+
+# Fungsi untuk validasi input key
+def validate_key(s):
+    if len(s) != 16:
+        return False
+    try:
+        int(s, 16)
+        return True
+    except ValueError:
+        return False
+
+
+# Input dari pengguna
+pt = input("Masukkan plaintext (8 karakter ASCII): ")
+key = input("Masukkan kunci (16 karakter Hex): ")
+
+if not validate_input(pt):
+    print(
+        "Error: Plaintext harus 8 karakter ASCII! dan Key harus 16 karakter Hexadecimal!"
+    )
+    exit()
+
+pt_hex = ascii2hex(pt)
+# key_hex = ascii2hex(key)
+key_hex = key
+
+# Proses pembuatan kunci
+key = hex2bin(key_hex)
+key = permute(key, tabel_pc1, 56)
 left = key[0:28]
 right = key[28:56]
 rkb = []
@@ -592,8 +622,6 @@ for i in range(0, 16):
     combine_str = left + right
     round_key = permute(combine_str, tabel_pc2, 48)
     rkb.append(round_key)
-
-# -------
 
 # Enkripsi
 print("\nEnkripsi")
