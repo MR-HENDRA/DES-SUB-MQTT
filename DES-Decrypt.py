@@ -440,6 +440,7 @@ tabel_lso = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
 
 # Fungsi untuk konversi heksadesimal ke biner
 def hex2bin(s):
+    s = s.upper()  # Konversi ke huruf besar
     return "".join(tabel_hex2bin[c] for c in s)
 
 
@@ -525,38 +526,38 @@ def pbox_permutation(sbox_str):
     return permute(sbox_str, tabel_pbox, 32)
 
 
-# Fungsi untuk enkripsi DES
-def encrypt(pt, rkb):
-    pt = hex2bin(pt)
-    print(f"Plaintext (Binary): {pt}\n")
-    pt = permute(pt, tabel_ip, 64)
-    print(f"Plaintext after IP: {pt}\n")
-    left, right = pt[:32], pt[32:]
-    print(f"L0: {left}")
-    print(f"R0: {right}\n")
+# Fungsi untuk dekripsi DES
+def decrypt(ct, rkb):
+    ct = hex2bin(ct)
+    print(f"\nCiphertext (Binary): {ct}\n")
+    ct = permute(ct, tabel_ip, 64)
+    print(f"Ciphertext after IP: {ct}\n")
+    left, right = ct[:32], ct[32:]
+    print(f"R16: {left}")
+    print(f"L16: {right}\n")
     for i in range(16):
         round_number = i + 1
-        key_used = round_number
+        key_used = 16 - i
         print(f"--- Round {round_number} (K{key_used}) ---")
         right_expanded = permute(right, tabel_expansion, 48)
-        print(f"E(R{key_used - 1}): {right_expanded}")
+        print(f"E(R{key_used}): {right_expanded}")
         xor_result = xor(right_expanded, rkb[i])
         print(f"A{key_used}: {xor_result}")
         sbox_str = sbox_substitution(xor_result)
         print(f"B{key_used}: {sbox_str}")
-        sbox_str = pbox_permutation(sbox_str)
-        print(f"P(B{key_used}): {sbox_str}")
-        print(f"L{key_used}: {right}")
-        left = xor(left, sbox_str)
-        print(f"R{key_used}: {left}")
-        combined = left + right
+        pbox_str = pbox_permutation(sbox_str)
+        print(f"P(B{key_used}): {pbox_str}")
+        print(f"L{key_used - 1}: {right}")
+        left = xor(left, pbox_str)
+        print(f"R{key_used - 1}: {left}")
+        left, right = right, left
+        combined = right + left
         if i != 15:
-            left, right = right, left
-            print(f"L{key_used}R{key_used}: {left} {right}\n")
+            print(f"L{key_used - 1}R{key_used - 1}: {left} {right}\n")
         else:
-            print(f"R16L16: {left} {right}\n")
-    ct = permute(combined, tabel_iip, 64)
-    return ct
+            print(f"R0L0: {right} {left}\n")
+    pt = permute(combined, tabel_iip, 64)
+    return pt
 
 
 def validate_input(s):
@@ -589,18 +590,19 @@ def get_valid_input(prompt, validation_func):
 
 
 def main():
-    pt = get_valid_input("Enter plaintext (8 ASCII characters): ", validate_input)
-    key = get_valid_input("Enter hexadecimal (16 Hex characters): ", validate_key)
+    ct = get_valid_input("Enter ciphertext (16 hexadecimal characters): ", validate_key)
+    key = get_valid_input("Enter key (16 hexadecimal characters): ", validate_key)
 
-    pt_hex = ascii2hex(pt)
-    print(f"\nPlaintext (Hex): {pt_hex}")
+    print(f"\nCiphertext (Hex): {ct}")
     rkb = generate_round_keys(key)
+    reversed_rkb = rkb[::-1]  # Reverse round keys untuk dekripsi
 
-    print("\n--- ENCRYPTION ---\n")
-    ct = encrypt(pt_hex, rkb)
-    ct_hex = bin2hex(ct)
-    print("\nCiphertext (Binary):", ct)
-    print("Ciphertext (Hex):", ct_hex)
+    print("\n--- DECRYPTION ---\n")
+    pt = decrypt(ct, reversed_rkb)
+    pt_hex = bin2hex(pt)
+    print("\nPlaintext (Binary):", pt)
+    print("Plaintext (Hex):", pt_hex)
+    print("Plaintext (ASCII):", hex2ascii(pt_hex))
 
 
 # Main
